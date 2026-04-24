@@ -6,3 +6,4 @@
 203.0.113.50
 198.51.100.23
 192.0.2.100
+185.220.101.45  # Tor exit node — added by simulation script

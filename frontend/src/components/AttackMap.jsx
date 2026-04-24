@@ -6,7 +6,7 @@ import {
   Marker,
   Line,
 } from 'react-simple-maps';
-import { attackMapPoints } from '../data/mockData';
+
 
 // Free TopoJSON hosted by react-simple-maps
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
@@ -19,14 +19,36 @@ const severityColor = {
   LOW:      { dot: '#34d399', glow: 'rgba(16,185,129,0.45)', line: 'rgba(16,185,129,0.40)' },
 };
 
-// Geo-coordinates for attack origins (lat/lng)
-const attackOrigins = [
-  { id: 1, coordinates: [-95.71,  37.09], ip: '203.0.113.45',  type: 'Brute Force Attack',  severity: 'HIGH',     location: 'United States' },
-  { id: 2, coordinates: [37.62,   55.75], ip: '198.51.100.23',  type: 'Reverse Shell',       severity: 'CRITICAL', location: 'Russia' },
-  { id: 3, coordinates: [10.45,   51.16], ip: '185.220.101.1',  type: 'Network Anomaly',     severity: 'MEDIUM',   location: 'Germany' },
-  { id: 4, coordinates: [104.19,  35.86], ip: '45.33.32.156',   type: 'Brute Force Attack',  severity: 'HIGH',     location: 'China' },
-  { id: 5, coordinates: [2.21,    46.60], ip: '91.189.88.142',  type: 'Failed Logins',       severity: 'HIGH',     location: 'France' },
-];
+// Generate coordinates for an IP consistently
+function getCoordinatesForIp(ip) {
+  // Known presets for demo realism
+  if (ip === '185.220.101.45') return [10.45, 51.16]; // Germany
+  if (ip === '203.0.113.45') return [-95.71, 37.09]; // US
+  if (ip === '198.51.100.23') return [37.62, 55.75]; // Russia
+  if (ip === '45.33.32.156') return [104.19, 35.86]; // China
+  if (ip === '91.189.88.142') return [2.21, 46.60]; // France
+  if (ip === '127.0.0.1') return [77.59, 12.97]; // Local/Server Location
+  
+  // Deterministic hash to convert string to coordinates
+  let hash = 0;
+  for (let i = 0; i < ip.length; i++) {
+    hash = ip.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  hash = Math.abs(hash);
+  const lng = -170 + (hash % 340);
+  const lat = -50 + ((hash >> 4) % 120);
+  return [lng, lat];
+}
+
+function getLocationForIp(ip) {
+  if (ip === '185.220.101.45') return 'Germany';
+  if (ip === '203.0.113.45') return 'United States';
+  if (ip === '198.51.100.23') return 'Russia';
+  if (ip === '45.33.32.156') return 'China';
+  if (ip === '91.189.88.142') return 'France';
+  if (ip === '127.0.0.1') return 'Local Network';
+  return 'Unknown Location';
+}
 
 // Our server location (target of attacks)
 const SERVER_LOCATION = [77.59, 12.97]; // Bangalore, India
@@ -35,6 +57,32 @@ export default function AttackMap() {
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [pulseKey, setPulseKey] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [attackers, setAttackers] = useState([]);
+
+  // Fetch real attacker data
+  useEffect(() => {
+    const fetchAttackers = () => {
+      fetch('/api/attackers')
+        .then(r => r.json())
+        .then(data => {
+          // Transform backend data to map points
+          const points = data.map((d, index) => ({
+            id: index,
+            ip: d.ip,
+            coordinates: getCoordinatesForIp(d.ip),
+            location: getLocationForIp(d.ip),
+            type: (d.type || 'unknown').replace(/_/g, ' ').toUpperCase(),
+            severity: d.severity || 'MEDIUM'
+          }));
+          setAttackers(points);
+        })
+        .catch(err => console.error("Error fetching map data:", err));
+    };
+
+    fetchAttackers();
+    const interval = setInterval(fetchAttackers, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Re-trigger pulse animation periodically
   useEffect(() => {
@@ -71,7 +119,7 @@ export default function AttackMap() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-kavach-muted bg-white/[0.04] px-2 py-1 rounded-md border border-white/[0.06]">
-            {attackOrigins.length} active sources
+            {attackers.length} active sources
           </span>
         </div>
       </div>
@@ -105,7 +153,7 @@ export default function AttackMap() {
           </Geographies>
 
           {/* Attack lines — from origin to server */}
-          {attackOrigins.map((point) => {
+          {attackers.map((point) => {
             const colors = severityColor[point.severity] || severityColor.HIGH;
             return (
               <Line
@@ -136,7 +184,7 @@ export default function AttackMap() {
           </Marker>
 
           {/* Attack origin markers */}
-          {attackOrigins.map((point) => {
+          {attackers.map((point) => {
             const colors = severityColor[point.severity] || severityColor.HIGH;
             return (
               <Marker

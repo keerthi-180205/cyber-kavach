@@ -19,9 +19,11 @@ from sender import send_alert
 logger = logging.getLogger("detector.brute_force")
 
 # Regex to extract failed SSH login attempts and their source IPs
-# Matches lines like: "Failed password for root from 192.168.1.100 port 22 ssh2"
+# Matches both attack patterns:
+#   "Failed password for root from 192.168.1.100 port 22 ssh2"
+#   "Invalid user haxor from 192.168.1.100 port 22"
 FAILED_SSH_RE = re.compile(
-    r"Failed password for .+ from (\d+\.\d+\.\d+\.\d+)"
+    r"(?:Failed password for(?: invalid user)? \S+ from|Invalid user \S+ from)\s+(\d+\.\d+\.\d+\.\d+)"
 )
 
 
@@ -111,7 +113,7 @@ def start_brute_force_detector(config):
             alert = {
                 "id": str(uuid.uuid4()),
                 "type": "brute_force",
-                "severity": "HIGH",
+                "severity": "MEDIUM",
                 "ip": ip,
                 "process": None,
                 "action": None,          # Will be set by responder

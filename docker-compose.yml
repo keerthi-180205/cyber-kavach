@@ -12,10 +12,11 @@ services:
       - ./backend/alerts.json:/app/alerts.json
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
       retries: 3
+      start_period: 10s
 
   frontend:
     build:
@@ -35,8 +36,13 @@ services:
       dockerfile: Dockerfile
     container_name: cyber-kavach-agent
     network_mode: "host"
+    pid: "host"            # ← Required: lets psutil see ALL host processes
+    privileged: true       # ← Required: lets os.kill work across namespaces
     env_file:
       - .env
+    environment:
+      # Override BACKEND_URL — agent uses host network so must use localhost, not Docker DNS
+      - BACKEND_URL=http://localhost:8000
     volumes:
       # Mount host logs for real monitoring
       - /var/log:/var/log:ro

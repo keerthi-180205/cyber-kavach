@@ -125,6 +125,35 @@ async def get_alerts(severity: Optional[str] = Query(None)):
     return alerts
 
 
+@app.get("/attackers")
+async def get_attackers():
+    """
+    Aggregate attacker IPs from stored alerts.
+    Returns ranked list: [{ ip, count, last_seen, type, severity }]
+    """
+    from collections import defaultdict
+    tracker = defaultdict(lambda: {"count": 0, "last_seen": None, "type": None, "severity": None})
+
+    for alert in alerts:
+        ip = alert.get("ip")
+        if not ip:
+            continue
+        # Satisfy type checker by ensuring count is treated as int
+        current = tracker[ip]["count"]
+        tracker[ip]["count"] = (int(current) if current is not None else 0) + 1
+        ts = alert.get("timestamp")
+        if tracker[ip]["last_seen"] is None or (ts and ts > tracker[ip]["last_seen"]):
+            tracker[ip]["last_seen"] = ts
+            tracker[ip]["type"] = alert.get("type", "unknown")
+            tracker[ip]["severity"] = alert.get("severity", "MEDIUM")
+
+    result = [
+        {"ip": ip, **data}
+        for ip, data in sorted(tracker.items(), key=lambda x: -x[1]["count"])
+    ]
+    return result
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     """

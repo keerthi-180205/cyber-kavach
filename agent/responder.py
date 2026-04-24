@@ -58,7 +58,7 @@ def _handle_ip_block(alert, demo):
     else:
         try:
             subprocess.run(
-                ["iptables", "-A", "INPUT", "-s", ip, "-j", "DROP"],
+                ["iptables", "-I", "INPUT", "1", "-s", ip, "-j", "DROP"],
                 check=True,
                 capture_output=True,
                 text=True,

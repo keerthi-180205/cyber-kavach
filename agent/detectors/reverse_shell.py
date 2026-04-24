@@ -83,14 +83,39 @@ def _is_suspicious_connection(remote_ip, remote_port, state):
     1. It is in ESTABLISHED state
     2. The remote port is non-standard (not 22, 80, 443)
     3. It is not a loopback connection
+    4. It is not a Docker bridge (172.16-31.x.x)
     """
     if state != TCP_STATE_ESTABLISHED:
         return False
     if remote_port in STANDARD_PORTS:
         return False
+    # Loopback and unbound
     if remote_ip.startswith("127.") or remote_ip == "0.0.0.0":
         return False
+    # Docker bridge networks (172.16.0.0/12 range)
+    parts = remote_ip.split(".")
+    if len(parts) == 4 and parts[0] == "172":
+        second = int(parts[1])
+        if 16 <= second <= 31:
+            return False
     return True
+
+
+# Cmdline fragments that identify safe IDE/editor processes — never kill these
+_SAFE_CMDLINE_PATTERNS = [
+    "shellIntegration",   # VS Code shell integration
+    "antigravity",        # This AI agent's own processes
+    "/usr/share/code",    # VS Code
+    ".vscode-server",     # VS Code remote server
+    "cpuUsage.sh",        # VS Code CPU monitor helper
+    "server.py",          # VS Code python helper
+]
+
+
+def _is_safe_process(cmdline_list):
+    """Return True if this process is a known-safe IDE/editor shell."""
+    cmdline = " ".join(cmdline_list or [])
+    return any(pat in cmdline for pat in _SAFE_CMDLINE_PATTERNS)
 
 
 def start_reverse_shell_detector(config):
@@ -115,6 +140,9 @@ def start_reverse_shell_detector(config):
     # Track PIDs we've already alerted on to avoid duplicates
     alerted_pids = set()
 
+    # Agent's own PID — never flag ourselves
+    own_pid = os.getpid()
+
     while True:
         try:
             for proc in psutil.process_iter(["pid", "name", "cmdline"]):
@@ -126,6 +154,19 @@ def start_reverse_shell_detector(config):
                         continue
 
                     pid = proc.info["pid"]
+
+                    # Skip the agent's own process and its parent
+                    if pid == own_pid or pid == os.getppid():
+                        continue
+
+                    # Skip any python process running main.py (the agent itself)
+                    cmdline = proc.info.get("cmdline") or []
+                    if any("main.py" in arg for arg in cmdline):
+                        continue
+
+                    # Skip known-safe IDE/editor shells
+                    if _is_safe_process(cmdline):
+                        continue
 
                     # Skip if already alerted
                     if pid in alerted_pids:

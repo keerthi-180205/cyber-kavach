@@ -48,8 +48,12 @@ export default function RecentAlerts({ alerts }) {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{alert.label}</p>
-              <p className="text-xs text-kavach-muted truncate mt-0.5">{alert.description}</p>
+              <p className="text-sm font-semibold text-white truncate">
+                {alert.label || (alert.type ? alert.type.replace(/_/g, ' ').toUpperCase() : 'UNKNOWN')}
+              </p>
+              <p className="text-xs text-kavach-muted truncate mt-0.5">
+                {alert.description || alert.reason || 'No details'}
+              </p>
             </div>
 
             {/* Server */}

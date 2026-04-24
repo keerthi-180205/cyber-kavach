@@ -19,7 +19,7 @@ def _format_alert_body(alert: dict) -> str:
         "\n"
         f"Type:      {alert.get('type', 'N/A')}\n"
         f"Severity:  {alert.get('severity', 'N/A')}\n"
-        f"Source IP: {alert.get('source_ip', 'N/A')}\n"
+        f"Source IP: {alert.get('ip', 'N/A')}\n"
         f"Process:   {alert.get('process', 'N/A')}\n"
         f"Action:    {alert.get('action', 'N/A')}\n"
         f"Reason:    {alert.get('reason', 'N/A')}\n"
@@ -45,6 +45,11 @@ def send_email(alert: dict) -> None:
         logger.warning("Email not configured — skipping notification.")
         return
 
+    # Narrow types after None guard (os.getenv returns str | None)
+    smtp_user = str(smtp_user)
+    smtp_pass = str(smtp_pass)
+    alert_email = str(alert_email)
+
     severity = alert.get("severity", "UNKNOWN")
     alert_type = alert.get("type", "unknown")
     subject = f"[Cyber Kavach] {severity} Alert — {alert_type}"
@@ -64,3 +69,4 @@ def send_email(alert: dict) -> None:
         logger.info("Alert email sent to %s", alert_email)
     except Exception as exc:
         logger.error("Failed to send alert email: %s", exc)
+
