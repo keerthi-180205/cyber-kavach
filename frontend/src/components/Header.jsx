@@ -17,7 +17,7 @@ function timeAgo(ts) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export default function Header({ alerts = [], onNavigate }) {
+export default function Header({ alerts = [], onNavigate, user, onLogout }) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showNotifs, setShowNotifs] = useState(false);
   const dropdownRef = useRef(null);
@@ -132,15 +132,23 @@ export default function Header({ alerts = [], onNavigate }) {
           )}
         </div>
 
-        {/* Admin Profile */}
+        {/* User Profile */}
         <div className="flex items-center gap-3 pl-4 border-l border-white/[0.08]">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-sm font-bold text-white">
-            A
+            {(user?.name || 'U')[0].toUpperCase()}
           </div>
           <div className="hidden lg:block">
-            <p className="text-sm font-semibold text-white leading-tight">Admin</p>
-            <p className="text-[11px] text-kavach-muted leading-tight">admin@cyberkavach.io</p>
+            <p className="text-sm font-semibold text-white leading-tight">{user?.name || 'User'}</p>
+            <p className="text-[11px] text-kavach-muted leading-tight">{user?.email || ''}</p>
           </div>
+          {onLogout && (
+            <button onClick={onLogout} title="Sign out"
+              className="ml-1 p-1.5 rounded-lg text-kavach-muted hover:text-red-400 hover:bg-red-500/10 transition-all">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     </header>

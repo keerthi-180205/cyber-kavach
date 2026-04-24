@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LoginPage from './components/LoginPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import StatCards from './components/StatCards';
@@ -78,6 +79,30 @@ const protectionConfigs = {
 };
 
 export default function App() {
+  const [user, setUser] = useState(() => {
+    const saved = sessionStorage.getItem('kavach_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    sessionStorage.setItem('kavach_user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    sessionStorage.removeItem('kavach_user');
+  };
+
+  // Show login page if not authenticated
+  if (!user) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  return <DashboardApp user={user} onLogout={handleLogout} />;
+}
+
+function DashboardApp({ user, onLogout }) {
   const { alerts, isConnected, counters } = useWebSocket();
   const [activePage, setActivePage] = useState('Dashboard');
   const [timeRange, setTimeRange] = useState('24H');
@@ -102,7 +127,7 @@ export default function App() {
       case 'Dashboard':
         return (
           <>
-            <Header alerts={alerts} onNavigate={setActivePage} />
+            <Header alerts={alerts} onNavigate={setActivePage} user={user} onLogout={onLogout} />
             <div className="flex items-center justify-end mb-4 -mt-2">
               <div className="flex items-center bg-white/[0.04] rounded-lg border border-white/[0.06] p-0.5">
                 {timeRanges.map((range) => (
