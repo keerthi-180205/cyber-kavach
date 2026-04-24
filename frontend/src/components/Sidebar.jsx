@@ -20,7 +20,7 @@ import {
 const navSections = [
   {
     items: [
-      { icon: HiOutlineViewGrid, label: 'Dashboard', active: true },
+      { icon: HiOutlineViewGrid, label: 'Dashboard' },
       { icon: HiOutlineBell, label: 'Alerts', badge: 12 },
       { icon: HiOutlineExclamationCircle, label: 'Incidents' },
       { icon: HiOutlineDesktopComputer, label: 'Live Monitor' },
@@ -49,7 +49,7 @@ const navSections = [
   },
 ];
 
-export default function Sidebar({ isConnected }) {
+export default function Sidebar({ isConnected, activePage, onNavigate }) {
   return (
     <aside className="w-[260px] h-screen bg-[#0b1120] border-r border-white/[0.06] flex flex-col fixed left-0 top-0 z-50">
       {/* Logo */}
@@ -77,21 +77,28 @@ export default function Sidebar({ isConnected }) {
               </p>
             )}
             <div className="space-y-0.5">
-              {section.items.map((item) => (
-                <a
-                  key={item.label}
-                  href="#"
-                  className={`sidebar-link group ${item.active ? 'active' : ''}`}
-                >
-                  <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${item.active ? 'text-kavach-accent' : 'text-kavach-muted group-hover:text-kavach-text'} transition-colors`} />
-                  <span className="flex-1">{item.label}</span>
-                  {item.badge && (
-                    <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                      {item.badge}
-                    </span>
-                  )}
-                </a>
-              ))}
+              {section.items.map((item) => {
+                const isActive = activePage === item.label;
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => onNavigate(item.label)}
+                    className={`sidebar-link group w-full text-left ${isActive ? 'active' : ''}`}
+                  >
+                    <item.icon
+                      className={`w-[18px] h-[18px] flex-shrink-0 ${
+                        isActive ? 'text-kavach-accent' : 'text-kavach-muted group-hover:text-kavach-text'
+                      } transition-colors`}
+                    />
+                    <span className="flex-1">{item.label}</span>
+                    {item.badge && (
+                      <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}

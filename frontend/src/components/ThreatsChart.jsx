@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AreaChart,
   Area,
@@ -9,7 +9,9 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { threatTimelineData } from '../data/mockData';
+import { threatTimelineData as mockTimelineData } from '../data/mockData';
+
+const BACKEND_URL = 'http://localhost:8000';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -28,9 +30,34 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function ThreatsChart() {
+  const [timelineData, setTimelineData] = useState(mockTimelineData);
+
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/threats-timeline`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setTimelineData(data);
+        }
+      })
+      .catch(() => {});
+
+    const interval = setInterval(() => {
+      fetch(`${BACKEND_URL}/threats-timeline`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setTimelineData(data);
+          }
+        })
+        .catch(() => {});
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="glass-card p-5">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-sm font-semibold text-white">Threats Over Time</h3>
         <select className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-kavach-muted focus:outline-none focus:border-kavach-accent/30 cursor-pointer">
@@ -39,8 +66,6 @@ export default function ThreatsChart() {
           <option>30 Days</option>
         </select>
       </div>
-
-      {/* Legend */}
       <div className="flex items-center gap-5 mb-4">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
@@ -55,10 +80,8 @@ export default function ThreatsChart() {
           <span className="text-[11px] text-kavach-muted">Other Attacks</span>
         </div>
       </div>
-
-      {/* Chart */}
       <ResponsiveContainer width="100%" height={240}>
-        <AreaChart data={threatTimelineData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+        <AreaChart data={timelineData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
           <defs>
             <linearGradient id="gradBrute" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#f87171" stopOpacity={0.3} />
@@ -74,43 +97,12 @@ export default function ThreatsChart() {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-          <XAxis
-            dataKey="time"
-            tick={{ fill: '#7d8590', fontSize: 10 }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
-            tickLine={false}
-            interval={3}
-          />
-          <YAxis
-            tick={{ fill: '#7d8590', fontSize: 10 }}
-            axisLine={false}
-            tickLine={false}
-          />
+          <XAxis dataKey="time" tick={{ fill: '#7d8590', fontSize: 10 }} axisLine={{ stroke: 'rgba(255,255,255,0.06)' }} tickLine={false} interval={3} />
+          <YAxis tick={{ fill: '#7d8590', fontSize: 10 }} axisLine={false} tickLine={false} />
           <Tooltip content={<CustomTooltip />} />
-          <Area
-            type="monotone"
-            dataKey="bruteForce"
-            name="Brute Force"
-            stroke="#f87171"
-            strokeWidth={2}
-            fill="url(#gradBrute)"
-          />
-          <Area
-            type="monotone"
-            dataKey="reverseShell"
-            name="Reverse Shell"
-            stroke="#22d3ee"
-            strokeWidth={2}
-            fill="url(#gradShell)"
-          />
-          <Area
-            type="monotone"
-            dataKey="otherAttacks"
-            name="Other Attacks"
-            stroke="#a78bfa"
-            strokeWidth={2}
-            fill="url(#gradOther)"
-          />
+          <Area type="monotone" dataKey="bruteForce" name="Brute Force" stroke="#f87171" strokeWidth={2} fill="url(#gradBrute)" />
+          <Area type="monotone" dataKey="reverseShell" name="Reverse Shell" stroke="#22d3ee" strokeWidth={2} fill="url(#gradShell)" />
+          <Area type="monotone" dataKey="otherAttacks" name="Other Attacks" stroke="#a78bfa" strokeWidth={2} fill="url(#gradOther)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>
