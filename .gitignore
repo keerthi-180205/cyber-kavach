@@ -15,10 +15,12 @@ venv/
 
 # Runtime data
 backend/alerts.json
+node_modules/
 
 # OS
 .DS_Store
 Thumbs.db
+/node_modules
 
 # IDE
 .vscode/
