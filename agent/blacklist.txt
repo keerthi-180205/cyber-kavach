@@ -1,0 +1,8 @@
+# Blacklist — one IP per line
+# The network_monitor.py detector checks active connections against these IPs.
+# Add known malicious IPs below. Lines starting with # are ignored.
+
+# Example entries (replace with real threat IPs):
+203.0.113.50
+198.51.100.23
+192.0.2.100
