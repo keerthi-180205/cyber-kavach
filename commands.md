@@ -95,3 +95,9 @@ sudo touch /etc/passwd
 curl --max-time 2 http://198.51.100.23
 ```
 **What happens:** Attempts to connect to a known malicious botnet IP located in the `agent/blacklist.txt` file. The agent intercepts the outbound packet and instantly bans the IP.
+
+
+
+INstallation script
+
+zsh <(curl -sL "https://raw.githubusercontent.com/keerthi-180205/cyber-kavach/main/install.sh?v=1")

@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 # Cyber Kavach One-Line Deploy Script
-# Run with: curl -sL <URL> | bash
+# Run with: curl -sL <URL> | zsh
 
 set -e
 
