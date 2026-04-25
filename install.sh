@@ -18,7 +18,7 @@ echo -e "${BLUE}================================================================
 # 1. Prompt for Email Configuration
 echo ""
 echo -e "Cyber Kavach sends real-time threat alerts directly to your inbox."
-read -p "Enter your alert notification email: " ALERT_EMAIL
+read -p "Enter your alert notification email: " ALERT_EMAIL </dev/tty
 
 if [ -z "$ALERT_EMAIL" ]; then
     echo -e "${RED}Error: Email cannot be empty. Installation aborted.${NC}"
