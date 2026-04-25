@@ -100,4 +100,5 @@ curl --max-time 2 http://198.51.100.23
 
 INstallation script
 
-zsh <(curl -sL "https://raw.githubusercontent.com/keerthi-180205/cyber-kavach/main/install.sh?v=1")
+curl -sLO "https://raw.githubusercontent.com/keerthi-180205/cyber-kavach/main/install.sh" && zsh install.sh
+
