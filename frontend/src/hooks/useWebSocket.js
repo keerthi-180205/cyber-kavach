@@ -1,12 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { recentAlerts, dashboardStats } from '../data/mockData';
 
-const BACKEND_URL = 'http://localhost:8000';
+// Empty initial state — all data comes from real backend
+const EMPTY_STATS = {
+  securityScore: 100,
+  totalAlerts: 0,
+  blockedAttacks: 0,
+  monitoredServers: 1,
+  activeThreats: 0,
+  alertsDelta: 0,
+  blockedDelta: 0,
+};
+
+const BACKEND_URL = '';
 
 export function useWebSocket() {
-  const [alerts, setAlerts] = useState(recentAlerts);
+  const [alerts, setAlerts] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [counters, setCounters] = useState(dashboardStats);
+  const [counters, setCounters] = useState(EMPTY_STATS);
   const wsRef = useRef(null);
   const reconnectTimer = useRef(null);
 
@@ -26,7 +36,9 @@ export function useWebSocket() {
 
   const connect = useCallback(() => {
     try {
-      const ws = new WebSocket(`ws://${window.location.hostname}:8000/ws`);
+      // Use same host/port as page — goes through nginx /ws proxy
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
 
       ws.onopen = () => {
         setIsConnected(true);
@@ -64,27 +76,23 @@ export function useWebSocket() {
 
   // Fetch existing alerts + stats on mount
   useEffect(() => {
-    fetch(`${BACKEND_URL}/alerts`)
+    fetch(`${BACKEND_URL}/api/alerts`)
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setAlerts(data);
         }
       })
-      .catch(() => {
-        // Backend unavailable — mock data already set
-      });
+      .catch(() => {});
 
-    fetch(`${BACKEND_URL}/stats`)
+    fetch(`${BACKEND_URL}/api/stats`)
       .then((r) => r.json())
       .then((data) => {
         if (data && typeof data.totalAlerts === 'number') {
           setCounters(data);
         }
       })
-      .catch(() => {
-        // Backend unavailable — mock stats already set
-      });
+      .catch(() => {});
   }, []);
 
   // Connect WebSocket
@@ -99,7 +107,7 @@ export function useWebSocket() {
   // Health check polling
   useEffect(() => {
     const interval = setInterval(() => {
-      fetch(`${BACKEND_URL}/health`)
+      fetch(`${BACKEND_URL}/api/health`)
         .then(() => setIsConnected(true))
         .catch(() => setIsConnected(false));
     }, 35000);

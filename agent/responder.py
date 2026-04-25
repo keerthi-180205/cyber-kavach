@@ -29,9 +29,9 @@ def respond(alert, config):
     demo = config["demo_mode"]
     alert_type = alert["type"]
 
-    if alert_type in ("brute_force", "network_anomaly"):
+    if alert_type in ("brute_force", "network_anomaly", "deception_alert"):
         _handle_ip_block(alert, demo)
-    elif alert_type == "reverse_shell":
+    elif alert_type in ("reverse_shell", "cryptominer"):
         _handle_process_kill(alert, demo)
     else:
         logger.warning("Unknown alert type '%s' — no action taken.", alert_type)

@@ -80,8 +80,13 @@ const protectionConfigs = {
 
 export default function App() {
   const [user, setUser] = useState(() => {
-    const saved = sessionStorage.getItem('kavach_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = sessionStorage.getItem('kavach_user');
+      return saved && saved !== 'undefined' ? JSON.parse(saved) : null;
+    } catch (e) {
+      sessionStorage.removeItem('kavach_user');
+      return null;
+    }
   });
 
   const handleLogin = (userData) => {

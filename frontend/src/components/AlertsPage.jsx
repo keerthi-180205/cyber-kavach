@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { severityColors, alertTypeIcons } from '../data/mockData';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = '';
 
 function formatTime(timestamp) {
   const date = new Date(timestamp);

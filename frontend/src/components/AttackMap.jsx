@@ -8,7 +8,7 @@ import {
 } from 'react-simple-maps';
 import { attackMapPoints as mockPoints } from '../data/mockData';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = '';
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
 const countryNames = {
@@ -68,7 +68,7 @@ export default function AttackMap() {
 
   useEffect(() => {
     const fetchData = () => {
-      fetch(`${BACKEND_URL}/top-attackers`)
+      fetch(`${BACKEND_URL}/api/attackers`)
         .then(r => r.json())
         .then(data => { if (Array.isArray(data) && data.length > 0) setAttackers(data); })
         .catch(() => {});

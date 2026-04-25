@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { severityColors, alertTypeIcons } from '../data/mockData';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = '';
 
 function SeverityBadge({ severity }) {
   const c = severityColors[severity] || severityColors.MEDIUM;
@@ -12,7 +12,7 @@ export default function ThreatIntelPage({ alerts }) {
   const [topAttackers, setTopAttackers] = useState([]);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/top-attackers`)
+    fetch(`${BACKEND_URL}/api/attackers`)
       .then(r => r.json()).then(data => { if (Array.isArray(data)) setTopAttackers(data); })
       .catch(() => {});
   }, []);

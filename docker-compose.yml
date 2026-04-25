@@ -46,6 +46,8 @@ services:
     volumes:
       # Mount host logs for real monitoring
       - /var/log:/var/log:ro
+      # Mount blacklist live — changes take effect within 10s (no rebuild needed)
+      - ./agent/blacklist.txt:/app/blacklist.txt:ro
     depends_on:
       - backend
     restart: unless-stopped

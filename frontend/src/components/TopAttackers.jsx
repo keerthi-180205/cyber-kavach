@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { topAttackers as mockTopAttackers } from '../data/mockData';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = '';
 
 export default function TopAttackers() {
-  const [attackers, setAttackers] = useState(mockTopAttackers);
+  const [attackers, setAttackers] = useState([]);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/top-attackers`)
+    fetch(`${BACKEND_URL}/api/attackers`)
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -17,7 +16,7 @@ export default function TopAttackers() {
       .catch(() => {});
 
     const interval = setInterval(() => {
-      fetch(`${BACKEND_URL}/top-attackers`)
+      fetch(`${BACKEND_URL}/api/attackers`)
         .then((r) => r.json())
         .then((data) => {
           if (Array.isArray(data) && data.length > 0) {
@@ -41,7 +40,7 @@ export default function TopAttackers() {
             <tr className="border-b border-white/[0.06]">
               <th className="text-left text-[11px] font-semibold text-kavach-muted uppercase tracking-wider pb-3">IP Address</th>
               <th className="text-left text-[11px] font-semibold text-kavach-muted uppercase tracking-wider pb-3">Attack Count</th>
-              <th className="text-left text-[11px] font-semibold text-kavach-muted uppercase tracking-wider pb-3">Location</th>
+              <th className="text-left text-[11px] font-semibold text-kavach-muted uppercase tracking-wider pb-3">Type</th>
               <th className="text-left text-[11px] font-semibold text-kavach-muted uppercase tracking-wider pb-3">Last Seen</th>
             </tr>
           </thead>
@@ -55,12 +54,11 @@ export default function TopAttackers() {
                 </td>
                 <td className="py-3 text-sm font-semibold text-white">{attacker.count}</td>
                 <td className="py-3">
-                  <div className="flex items-center gap-2 text-sm text-kavach-text">
-                    <span className="text-base">{attacker.flag}</span>
-                    {attacker.location}
-                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded capitalize ${
+                    attacker.type === 'brute_force' ? 'bg-amber-500/10 text-amber-400' : 'bg-pink-500/10 text-pink-400'
+                  }`}>{(attacker.type || 'unknown').replace('_', ' ')}</span>
                 </td>
-                <td className="py-3 text-xs text-kavach-muted">{attacker.lastSeen}</td>
+                <td className="py-3 text-xs text-kavach-muted">{attacker.last_seen ? new Date(attacker.last_seen).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—'}</td>
               </tr>
             ))}
           </tbody>

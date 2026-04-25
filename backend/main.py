@@ -126,6 +126,7 @@ async def get_alerts(severity: Optional[str] = Query(None)):
 
 
 @app.get("/attackers")
+@app.get("/top-attackers")
 async def get_attackers():
     """
     Aggregate attacker IPs from stored alerts.
@@ -172,6 +173,55 @@ async def websocket_endpoint(ws: WebSocket):
     except WebSocketDisconnect:
         active_connections.remove(ws)
         logger.info("WebSocket client disconnected — total: %d", len(active_connections))
+
+
+@app.get("/stats")
+async def get_stats():
+    """Dashboard stat counters derived from stored alerts."""
+    total = len(alerts)
+    blocked = sum(1 for a in alerts if a.get("action") in ("IP_BLOCKED", "BLOCKED"))
+    active = sum(1 for a in alerts if a.get("severity") in ("HIGH", "CRITICAL"))
+    return {
+        "totalAlerts": total,
+        "blockedAttacks": blocked,
+        "activeThreats": active,
+        "monitoredServers": 1,
+        "securityScore": max(0, 100 - active * 5),
+        "alertsDelta": 0,
+        "blockedDelta": 0,
+    }
+
+
+@app.get("/threats-timeline")
+async def get_threats_timeline():
+    """
+    Return per-hour aggregated threat counts for the last 24 hours.
+    Shape: [{ time: "14:00", bruteForce: 3, reverseShell: 1, otherAttacks: 0 }, ...]
+    """
+    from collections import defaultdict
+
+    bucket: dict = defaultdict(lambda: {"bruteForce": 0, "reverseShell": 0, "otherAttacks": 0})
+
+    for alert in alerts:
+        ts = alert.get("timestamp")
+        if not ts:
+            continue
+        try:
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            hour_label = dt.strftime("%-H:%M")  # e.g. "14:00"
+        except ValueError:
+            continue
+
+        alert_type = alert.get("type", "")
+        if alert_type == "brute_force":
+            bucket[hour_label]["bruteForce"] += 1
+        elif alert_type == "reverse_shell":
+            bucket[hour_label]["reverseShell"] += 1
+        else:
+            bucket[hour_label]["otherAttacks"] += 1
+
+    # Return sorted by hour label
+    return [{"time": k, **v} for k, v in sorted(bucket.items())]
 
 
 @app.get("/health")

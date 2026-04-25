@@ -16,6 +16,9 @@ from dotenv import load_dotenv
 from detectors.brute_force import start_brute_force_detector
 from detectors.reverse_shell import start_reverse_shell_detector
 from detectors.network_monitor import start_network_monitor
+from detectors.honeypot import start_honeypot_detector
+from detectors.cryptominer import start_cryptominer_detector
+from detectors.privesc import start_privesc_detector
 
 # ── Load .env if present ─────────────────────────────────────────────
 load_dotenv()
@@ -74,6 +77,9 @@ def main():
         ("BruteForceDetector", start_brute_force_detector, config),
         ("ReverseShellDetector", start_reverse_shell_detector, config),
         ("NetworkMonitor", start_network_monitor, config),
+        ("HoneypotDetector", start_honeypot_detector, config),
+        ("CryptominerKiller", start_cryptominer_detector, config),
+        ("PrivilegeEscalation", start_privesc_detector, config),
     ]
 
     threads = []

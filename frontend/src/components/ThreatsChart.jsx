@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { threatTimelineData as mockTimelineData } from '../data/mockData';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = '';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -33,7 +33,7 @@ export default function ThreatsChart() {
   const [timelineData, setTimelineData] = useState(mockTimelineData);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/threats-timeline`)
+    fetch(`${BACKEND_URL}/api/threats-timeline`)
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -43,7 +43,7 @@ export default function ThreatsChart() {
       .catch(() => {});
 
     const interval = setInterval(() => {
-      fetch(`${BACKEND_URL}/threats-timeline`)
+      fetch(`${BACKEND_URL}/api/threats-timeline`)
         .then((r) => r.json())
         .then((data) => {
           if (Array.isArray(data) && data.length > 0) {
