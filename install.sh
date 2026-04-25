@@ -6,7 +6,7 @@
 set -e
 
 # Colors for terminal output
-GREEN='\03---[0;32m'
+GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
@@ -18,7 +18,8 @@ echo -e "${BLUE}================================================================
 # 1. Prompt for Email Configuration
 echo ""
 echo -e "Cyber Kavach sends real-time threat alerts directly to your inbox."
-read -p "Enter your alert notification email: " ALERT_EMAIL </dev/tty
+echo -n "Enter your alert notification email: "
+read ALERT_EMAIL </dev/tty
 
 if [ -z "$ALERT_EMAIL" ]; then
     echo -e "${RED}Error: Email cannot be empty. Installation aborted.${NC}"
